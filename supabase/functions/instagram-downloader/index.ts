@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.39.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.39.0'; // Only needed if you use Supabase
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,22 +48,40 @@ async function fetchInstagramMedia(url: string) {
   }
 }
 
-function getMockThumbnail(type: string): string {
-  const thumbnails = {
-    reel: 'https://images.pexels.com/photos/1279813/pexels-photo-1279813.jpeg',
-    post: 'https://images.pexels.com/photos/1051075/pexels-photo-1051075.jpeg',
-    story: 'https://images.pexels.com/photos/1539225/pexels-photo-1539225.jpeg',
-    highlight: 'https://images.pexels.com/photos/374870/pexels-photo-374870.jpeg'
-  };
-  return thumbnails[type as keyof typeof thumbnails] || thumbnails.post;
-}
-
-function getMockVideoUrl(type: string, quality: string): string {
-  // In a real implementation, this would return actual video URLs
-  return `https://example.com/instagram/${type}/${quality}.mp4`;
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  try {
+    const { url } = await req.json();
+
+    if (!url) {
+      return new Response(
+        JSON.stringify({ error: 'URL is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const isValidInstagramUrl = /instagram\.com/.test(url);
+
+    if (!isValidInstagramUrl) {
+      return new Response(
+        JSON.stringify({ error: 'Please enter a valid Instagram URL' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const result = await fetchInstagramMedia(url);
+
+    return new Response(
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
