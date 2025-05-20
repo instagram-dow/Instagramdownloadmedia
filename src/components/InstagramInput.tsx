@@ -42,7 +42,7 @@ const InstagramInput: React.FC<InstagramInputProps> = ({ onFetchMedia, isLoading
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               onPaste={handlePaste}
-              placeholder="https://www.instagram.com/p/..."
+              placeholder="https://www.instagram.com/..."
               className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
                          focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white
                          placeholder-gray-400 dark:placeholder-gray-300"
