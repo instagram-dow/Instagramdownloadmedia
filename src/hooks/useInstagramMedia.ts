@@ -1,3 +1,53 @@
+import { useState } from 'react';
+import { InstagramMediaType, FetchState } from '../types';
+import { fetchInstagramMedia } from '../services/instagram';
+
+export function useInstagramMedia() {
+  const [state, setState] = useState<FetchState>({
+    isLoading: false,
+    error: null,
+    media: null,
+  });
+
+  const [recentDownloads, setRecentDownloads] = useState<InstagramMediaType[]>([]);
+
+  const fetchMedia = async (url: string) => {
+    if (!url.trim()) {
+      setState({
+        ...state,
+        error: 'Please enter a valid Instagram URL',
+      });
+      return;
+    }
+
+    setState({
+      ...state,
+      isLoading: true,
+      error: null,
+    });
+
+    try {
+      const media = await fetchInstagramMedia(url);
+      setState({
+        isLoading: false,
+        error: null,
+        media,
+      });
+    } catch (error) {
+      setState({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch media',
+        media: null,
+      });
+    }
+  };
+
+  const downloadMedia = (media: InstagramMediaType, quality: 'high' | 'medium' | 'low') => {
+    const option = media.downloadOptions.find(opt => opt.quality === quality);
+    
+    if (!option) {
+      setState({
+        ...state,
         error: `${quality} quality option not available`,
       });
       return;
