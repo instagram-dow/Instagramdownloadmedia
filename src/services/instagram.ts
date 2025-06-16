@@ -1,25 +1,18 @@
-import { InstagramMediaType } from '../types';
+// Inside useInstagramMedia.js
+import { fetchInstagramMedia as actualFetchInstagramMedia } from '../services/instagram'; // This is *this* file
 
-export async function fetchInstagramMedia(url: string): Promise<InstagramMediaType> {
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/instagram-downloader`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ url }),
+// ... inside fetchMedia function in useInstagramMedia
+try {
+  const media = await actualFetchInstagramMedia(url); // Calls the function we just analyzed
+  setState({
+    isLoading: false,
+    error: null,
+    media,
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch Instagram media');
-  }
-
-  const result = await response.json();
-  
-  if (!result.success) {
-    throw new Error(result.error);
-  }
-
-  return result.data;
+} catch (error) {
+  setState({
+    isLoading: false,
+    error: error instanceof Error ? error.message : 'Failed to fetch media',
+    media: null,
+  });
 }
